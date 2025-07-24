@@ -3,8 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexagon Maler</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Hexagon Maler - Fixed</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #2a2a2a;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 200px;
+            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-left: 30px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .color-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+
+        .color-btn.active {
+            border-color: #00ff88;
+            border-width: 4px;
+            transform: scale(1.1);
+        }
+
+        #canvas {
+            display: block;
+            cursor: crosshair;
+            background: #1a1a1a;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(30, 30, 30, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .file-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #5a5a5a, #3d3d3d);
+            transform: translateY(-2px);
+        }
+
+        .pattern-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            background-size: cover;
+            background-position: center;
+            background-repeat: repeat;
+            position: relative;
+        }
+
+        .pattern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+
+        .pattern-btn.active {
+            border-color: #00ff88;
+            border-width: 4px;
+            transform: scale(1.1);
+        }
+
+        .add-pattern-btn {
+            background: linear-gradient(45deg, #333, #555);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #aaa;
+        }
+
+        #patternInput, #fileInput {
+            display: none;
+        }
+
+        .color-editor {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 2000;
+            color: white;
+            min-width: 300px;
+            display: none;
+        }
+
+        .color-editor h3 {
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+
+        .color-picker-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .color-picker {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .color-input {
+            background: #444;
+            border: 1px solid #666;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .editor-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1999;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="overlay" id="overlay" onclick="hexPainter.closeColorEditor()"></div>
@@ -43,12 +233,492 @@
         <div>🗑️ Rechtsklick Muster: Löschen</div>
     </div>
 
-    <script src="hexagon-math.js"></script>
-    <script src="hexagon-renderer.js"></script>
-    <script src="hexagon-ui.js"></script>
-    <script src="hexagon-painter.js"></script>
-    <script src="hexagon-lod.js"></script>
     <script>
+        // Hexagon-Mathematik und Koordinaten-Transformationen
+        class HexagonMath {
+            constructor(hexSize) {
+                this.hexSize = hexSize;
+                this.hexWidth = hexSize * 2;
+                this.hexHeight = Math.sqrt(3) * hexSize;
+            }
+            
+            // Bildschirmkoordinaten zu Hexagon-Koordinaten
+            pixelToHex(x, y, canvas, camera) {
+                // Bildschirmkoordinaten zu Weltkoordinaten
+                const worldX = (x - canvas.width / 2) / camera.zoom - camera.x;
+                const worldY = (y - canvas.height / 2) / camera.zoom - camera.y;
+                
+                // Hexagon-Gitter-Koordinaten
+                const q = (2/3 * worldX) / this.hexSize;
+                const r = (-1/3 * worldX + Math.sqrt(3)/3 * worldY) / this.hexSize;
+                
+                return this.roundHex(q, r);
+            }
+            
+            // Hexagon-Koordinaten zu Bildschirmkoordinaten
+            hexToPixel(q, r) {
+                const x = this.hexSize * (3/2 * q);
+                const y = this.hexSize * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+                return { x, y };
+            }
+            
+            // Runde Hexagon-Koordinaten auf ganze Zahlen
+            roundHex(q, r) {
+                const s = -q - r;
+                let rq = Math.round(q);
+                let rr = Math.round(r);
+                let rs = Math.round(s);
+                
+                const qDiff = Math.abs(rq - q);
+                const rDiff = Math.abs(rr - r);
+                const sDiff = Math.abs(rs - s);
+                
+                if (qDiff > rDiff && qDiff > sDiff) {
+                    rq = -rr - rs;
+                } else if (rDiff > sDiff) {
+                    rr = -rq - rs;
+                }
+                
+                return { q: rq, r: rr };
+            }
+            
+            // Berechne sichtbaren Hexagon-Bereich für Performance-Optimierung
+            getVisibleHexRange(canvas, camera) {
+                const screenLeft = -canvas.width / 2 / camera.zoom - camera.x;
+                const screenRight = canvas.width / 2 / camera.zoom - camera.x;
+                const screenTop = -canvas.height / 2 / camera.zoom - camera.y;
+                const screenBottom = canvas.height / 2 / camera.zoom - camera.y;
+                
+                // Adaptiver Puffer basierend auf Zoom-Level für unendliches Gefühl
+                const baseBuffer = Math.max(canvas.width, canvas.height) / camera.zoom * 0.5;
+                const bufferX = Math.max(this.hexSize * 5, baseBuffer);
+                const bufferY = Math.max(this.hexSize * 5, baseBuffer);
+                
+                const extendedLeft = screenLeft - bufferX;
+                const extendedRight = screenRight + bufferX;
+                const extendedTop = screenTop - bufferY;
+                const extendedBottom = screenBottom + bufferY;
+                
+                const hexWidth = this.hexSize * 1.5;
+                const hexHeight = this.hexSize * Math.sqrt(3);
+                
+                // Großzügiger Bereich für nahtloses Scrolling
+                const qMin = Math.floor(extendedLeft / hexWidth) - 10;
+                const qMax = Math.ceil(extendedRight / hexWidth) + 10;
+                const rMin = Math.floor(extendedTop / hexHeight) - 10;
+                const rMax = Math.ceil(extendedBottom / hexHeight) + 10;
+                
+                return { qMin, qMax, rMin, rMax };
+            }
+        }
+
+        // Hexagon-Renderer mit Level-of-Detail
+        class HexagonRenderer {
+            constructor(canvas, hexMath) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.hexMath = hexMath;
+                
+                this.setupCanvas();
+            }
+            
+            setupCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight - 80;
+                this.canvas.style.marginTop = '80px';
+            }
+            
+            // LoD-Level basierend auf Zoom bestimmen
+            getLoDLevel(zoom) {
+                if (zoom >= 0.8) return 0;      // Volldetail
+                if (zoom >= 0.4) return 1;      // Cluster
+                if (zoom >= 0.2) return 2;      // Größere Cluster
+                return 3;                       // Noch gröbere Cluster
+            }
+            
+            // Zeichne ein einzelnes Hexagon
+            drawHexagon(x, y, fill, sizeMultiplier = 1.0) {
+                const actualSize = this.hexMath.hexSize * sizeMultiplier;
+                
+                this.ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = i * Math.PI / 3;
+                    const hx = x + actualSize * Math.cos(angle);
+                    const hy = y + actualSize * Math.sin(angle);
+                    if (i === 0) {
+                        this.ctx.moveTo(hx, hy);
+                    } else {
+                        this.ctx.lineTo(hx, hy);
+                    }
+                }
+                this.ctx.closePath();
+                
+                // Fülle das Hexagon
+                this.ctx.fillStyle = fill;
+                this.ctx.fill();
+                
+                // Zeichne Umrandung
+                this.ctx.strokeStyle = '#444';
+                this.ctx.lineWidth = Math.max(0.5, 1 / (this.camera?.zoom || 1));
+                this.ctx.stroke();
+            }
+            
+            // Haupt-Render-Methode
+            render(hexagons, camera) {
+                this.camera = camera;
+                
+                // Canvas leeren
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Kamera-Transformation anwenden
+                this.ctx.save();
+                this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+                this.ctx.scale(camera.zoom, camera.zoom);
+                this.ctx.translate(camera.x, camera.y);
+                
+                // Sichtbaren Bereich bestimmen
+                const range = this.hexMath.getVisibleHexRange(this.canvas, camera);
+                
+                // Hexagone rendern - Smart rendering basierend auf Zoom
+                for (let q = range.qMin; q <= range.qMax; q++) {
+                    for (let r = range.rMin; r <= range.rMax; r++) {
+                        const pixel = this.hexMath.hexToPixel(q, r);
+                        const hexKey = `${q},${r}`;
+                        const fill = hexagons.get(hexKey) || '#1a1a1a';
+                        
+                        // Zeichne bemalte Hexagone immer, unbemalte nur bei genug Zoom
+                        if (fill !== '#1a1a1a' || camera.zoom > 0.4) {
+                            this.drawHexagon(pixel.x, pixel.y, fill);
+                        }
+                    }
+                }
+                
+                this.ctx.restore();
+                return true;
+            }
+        }
+
+        // UI-Management
+        class HexagonUI {
+            constructor() {
+                this.editingColorIndex = -1;
+            }
+            
+            // Erstelle Farbpalette
+            setupColorPalette(colors, patterns, currentFillType, callbacks) {
+                const toolbar = document.getElementById('toolbar');
+                toolbar.innerHTML = '';
+                
+                // Farb-Buttons erstellen
+                colors.forEach((color, index) => {
+                    const btn = this.createColorButton(color, index, currentFillType, callbacks);
+                    toolbar.appendChild(btn);
+                });
+            }
+            
+            createColorButton(color, index, currentFillType, callbacks) {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn';
+                btn.style.backgroundColor = color;
+                
+                if (index === 0 && currentFillType === 'color') {
+                    btn.classList.add('active');
+                }
+                
+                // Linksklick: Farbe auswählen
+                btn.addEventListener('click', () => {
+                    this.clearActiveButtons();
+                    btn.classList.add('active');
+                    callbacks.onColorSelect(color);
+                });
+                
+                // Rechtsklick: Farbe bearbeiten
+                btn.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.openColorEditor(index, color, callbacks);
+                });
+                
+                return btn;
+            }
+            
+            clearActiveButtons() {
+                document.querySelectorAll('.color-btn, .pattern-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+            }
+            
+            // Farb-Editor öffnen
+            openColorEditor(index, currentColor, callbacks) {
+                this.editingColorIndex = index;
+                const colorPicker = document.getElementById('colorPicker');
+                const colorInput = document.getElementById('colorInput');
+                const overlay = document.getElementById('overlay');
+                const editor = document.getElementById('colorEditor');
+                
+                colorPicker.value = currentColor;
+                colorInput.value = currentColor;
+                
+                // Event Listener für Live-Updates
+                colorPicker.oninput = () => {
+                    colorInput.value = colorPicker.value;
+                };
+                colorInput.oninput = () => {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(colorInput.value)) {
+                        colorPicker.value = colorInput.value;
+                    }
+                };
+                
+                // Store callback for later use
+                this.saveColorCallback = callbacks.onColorSave;
+                
+                overlay.style.display = 'block';
+                editor.style.display = 'block';
+            }
+            
+            // Farb-Editor schließen
+            closeColorEditor() {
+                const overlay = document.getElementById('overlay');
+                const editor = document.getElementById('colorEditor');
+                overlay.style.display = 'none';
+                editor.style.display = 'none';
+                this.editingColorIndex = -1;
+            }
+            
+            // Farbe speichern
+            saveColor() {
+                if (this.editingColorIndex >= 0 && this.saveColorCallback) {
+                    const newColor = document.getElementById('colorPicker').value;
+                    this.saveColorCallback(this.editingColorIndex, newColor);
+                }
+                this.closeColorEditor();
+            }
+        }
+
+        // Haupt-Klasse
+        class HexagonPainter {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                
+                // Module initialisieren
+                this.hexMath = new HexagonMath(30);
+                this.renderer = new HexagonRenderer(this.canvas, this.hexMath);
+                this.ui = new HexagonUI();
+                
+                // Kamera-System
+                this.camera = { x: 0, y: 0, zoom: 1 };
+                this.isDragging = false;
+                this.lastMousePos = { x: 0, y: 0 };
+                this.currentMousePos = { x: 0, y: 0 };
+                
+                // Daten-Speicher
+                this.hexagons = new Map();
+                this.patterns = new Map();
+                
+                // Aktueller Zustand
+                this.currentFillType = 'color';
+                this.currentPattern = null;
+                
+                // Initialisierung
+                this.loadColors();
+                this.setupUI();
+                this.setupEventListeners();
+                this.animate();
+            }
+            
+            // Farben laden/initialisieren
+            loadColors() {
+                this.colors = [
+                    '#000000', '#333333', '#666666', '#999999', '#cccccc', '#ffffff',
+                    '#ff0000', '#ff6600', '#ffff00', '#66ff00', '#00ff00', '#00ff66',
+                    '#00ffff', '#0066ff', '#0000ff', '#6600ff', '#ff00ff', '#ff0066',
+                    '#8B4513', '#FF69B4', '#32CD32'
+                ];
+                this.currentColor = this.colors[0];
+            }
+            
+            // UI Setup mit Callbacks
+            setupUI() {
+                const callbacks = {
+                    onColorSelect: (color) => {
+                        this.currentColor = color;
+                        this.currentFillType = 'color';
+                        this.currentPattern = null;
+                    },
+                    onColorSave: (index, newColor) => {
+                        this.colors[index] = newColor;
+                        this.ui.setupColorPalette(this.colors, this.patterns, this.currentFillType, callbacks);
+                        this.currentColor = newColor;
+                        this.currentFillType = 'color';
+                        this.currentPattern = null;
+                    }
+                };
+                
+                this.uiCallbacks = callbacks;
+                this.ui.setupColorPalette(this.colors, this.patterns, this.currentFillType, callbacks);
+            }
+            
+            // Event Listeners einrichten
+            setupEventListeners() {
+                // Fenster-Resize
+                window.addEventListener('resize', () => {
+                    this.renderer.setupCanvas();
+                });
+                
+                // Maus-Events
+                this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
+                this.canvas.addEventListener('mouseup', () => this.onMouseUp());
+                this.canvas.addEventListener('contextmenu', (e) => this.onContextMenu(e));
+                this.canvas.addEventListener('wheel', (e) => this.onWheel(e));
+                
+                // Tastatur-Events
+                document.addEventListener('keydown', (e) => this.onKeyDown(e));
+            }
+            
+            // Maus-Events
+            onMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                if (e.button === 0) { // Linke Maustaste - Malen
+                    this.paintHexagon(mouseX, mouseY);
+                } else if (e.button === 2) { // Rechte Maustaste - Kamera bewegen
+                    this.isDragging = true;
+                    this.lastMousePos = { x: mouseX, y: mouseY };
+                }
+            }
+            
+            onMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                this.currentMousePos.x = e.clientX - rect.left;
+                this.currentMousePos.y = e.clientY - rect.top;
+                
+                if (!this.isDragging) return;
+                
+                const deltaX = this.currentMousePos.x - this.lastMousePos.x;
+                const deltaY = this.currentMousePos.y - this.lastMousePos.y;
+                
+                this.camera.x += deltaX / this.camera.zoom;
+                this.camera.y += deltaY / this.camera.zoom;
+                
+                this.lastMousePos = { x: this.currentMousePos.x, y: this.currentMousePos.y };
+            }
+            
+            onMouseUp() {
+                this.isDragging = false;
+            }
+            
+            onContextMenu(e) {
+                e.preventDefault();
+                this.isDragging = true;
+                const rect = this.canvas.getBoundingClientRect();
+                this.lastMousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            }
+            
+            onWheel(e) {
+                e.preventDefault();
+                const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+                this.camera.zoom = Math.max(0.1, Math.min(5, this.camera.zoom * zoomFactor));
+            }
+            
+            onKeyDown(e) {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    this.paintHexagon(this.currentMousePos.x, this.currentMousePos.y);
+                }
+            }
+            
+            // Hexagon malen
+            paintHexagon(mouseX, mouseY) {
+                const hexCoord = this.hexMath.pixelToHex(mouseX, mouseY, this.canvas, this.camera);
+                const hexKey = `${hexCoord.q},${hexCoord.r}`;
+                
+                if (this.currentFillType === 'color') {
+                    this.hexagons.set(hexKey, this.currentColor);
+                }
+            }
+            
+            // Animation Loop
+            animate() {
+                this.renderer.render(this.hexagons, this.camera);
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            // UI-Methoden (für onclick-Handler)
+            closeColorEditor() {
+                this.ui.closeColorEditor();
+            }
+            
+            saveColor() {
+                this.ui.saveColor();
+            }
+            
+            // Projekt speichern (vereinfacht)
+            saveProject() {
+                const projectData = {
+                    hexagons: Object.fromEntries(this.hexagons),
+                    camera: this.camera,
+                    colors: this.colors,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(projectData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `hexagon-projekt-${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+                link.click();
+            }
+            
+            // Projekt laden (vereinfacht)
+            loadProject(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const projectData = JSON.parse(e.target.result);
+                        
+                        // Hexagon-Daten laden
+                        this.hexagons.clear();
+                        if (projectData.hexagons) {
+                            for (const [key, fill] of Object.entries(projectData.hexagons)) {
+                                this.hexagons.set(key, fill);
+                            }
+                        }
+                        
+                        // Kamera-Position laden
+                        if (projectData.camera) {
+                            this.camera = { ...this.camera, ...projectData.camera };
+                        }
+                        
+                        // Farben laden
+                        if (projectData.colors) {
+                            this.colors = projectData.colors;
+                        }
+                        
+                        this.ui.setupColorPalette(this.colors, this.patterns, this.currentFillType, this.uiCallbacks);
+                        alert('Projekt erfolgreich geladen!');
+                    } catch (error) {
+                        alert('Fehler beim Laden der Datei: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+                
+                event.target.value = '';
+            }
+            
+            // Placeholder für Muster (vereinfacht)
+            addPattern(event) {
+                console.log('Muster-Feature noch nicht implementiert');
+                event.target.value = '';
+            }
+        }
+
+        // App starten
         let hexPainter;
         window.addEventListener('load', () => {
             hexPainter = new HexagonPainter();
