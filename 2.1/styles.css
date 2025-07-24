@@ -1,0 +1,189 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #2a2a2a;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+.toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 200px;
+    background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-left: 30px;
+}
+
+.color-btn {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border-color: #fff;
+}
+
+.color-btn.active {
+    border-color: #00ff88;
+    border-width: 4px;
+    transform: scale(1.1);
+}
+
+#canvas {
+    display: block;
+    cursor: crosshair;
+    background: #1a1a1a;
+}
+
+.controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(30, 30, 30, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.file-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1001;
+}
+
+.btn {
+    background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, #5a5a5a, #3d3d3d);
+    transform: translateY(-2px);
+}
+
+.pattern-btn {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    background-size: cover;
+    background-position: center;
+    background-repeat: repeat;
+    position: relative;
+}
+
+.pattern-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border-color: #fff;
+}
+
+.pattern-btn.active {
+    border-color: #00ff88;
+    border-width: 4px;
+    transform: scale(1.1);
+}
+
+.add-pattern-btn {
+    background: linear-gradient(45deg, #333, #555);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #aaa;
+}
+
+#patternInput, #fileInput {
+    display: none;
+}
+
+.color-editor {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 2000;
+    color: white;
+    min-width: 300px;
+    display: none;
+}
+
+.color-editor h3 {
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+.color-picker-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.color-picker {
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.color-input {
+    background: #444;
+    border: 1px solid #666;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.editor-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1999;
+    display: none;
+}

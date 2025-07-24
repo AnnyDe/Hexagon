@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagon Maler</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="hexPainter.closeColorEditor()"></div>
+    <div class="color-editor" id="colorEditor">
+        <h3>Farbe bearbeiten</h3>
+        <div class="color-picker-container">
+            <input type="color" id="colorPicker" class="color-picker">
+            <div>
+                <div>Hex-Code:</div>
+                <input type="text" id="colorInput" class="color-input" maxlength="7">
+            </div>
+        </div>
+        <div class="editor-buttons">
+            <button class="btn" onclick="hexPainter.saveColor()">✓ Übernehmen</button>
+            <button class="btn" onclick="hexPainter.closeColorEditor()">✗ Abbrechen</button>
+        </div>
+    </div>
+    
+    <div class="file-controls">
+        <button class="btn" onclick="hexPainter.saveProject()">💾 Speichern</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">📁 Laden</button>
+        <input type="file" id="fileInput" accept=".json" onchange="hexPainter.loadProject(event)">
+        <input type="file" id="patternInput" accept="image/*" onchange="hexPainter.addPattern(event)">
+    </div>
+    
+    <div class="toolbar" id="toolbar"></div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+        <div>🖱️ Klicken: Hexagon färben/mustern</div>
+        <div>⌨️ Leertaste: Hexagon unter Maus färben</div>
+        <div>🖱️ Ziehen: Kamera bewegen</div>
+        <div>🔍 Mausrad: Zoomen</div>
+        <div>🎨 Rechtsklick Farbe: Bearbeiten</div>
+        <div>🗑️ Rechtsklick Muster: Löschen</div>
+    </div>
+
+    <script src="hexagon-math.js"></script>
+    <script src="hexagon-renderer.js"></script>
+    <script src="hexagon-ui.js"></script>
+    <script src="hexagon-painter.js"></script>
+    <script src="hexagon-lod.js"></script>
+    <script>
+        let hexPainter;
+        window.addEventListener('load', () => {
+            hexPainter = new HexagonPainter();
+        });
+    </script>
+</body>
+</html>
